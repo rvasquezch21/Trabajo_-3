@@ -1,19 +1,27 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
-# Crear una instancia de la aplicación FastAPI
+# Crear la instancia de la app
 app = FastAPI()
 
-# Definir una ruta de prueba
-@app.get("/")
-def read_root():
-    return {"message": "¡Hola, mundo!"}
+# Modelo para los datos de login
+class User(BaseModel):
+    username: str
+    password: str
 
-# Crear una ruta con un parámetro
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
+# Base de datos simulada de usuarios
+fake_users_db = {
+    "usuario1": {
+        "username": "usuario1",
+        "password": "mi_contraseña_segura"
+    }
+}
 
-# Ejecutar la aplicación
-# Para esto, se utiliza Uvicorn, que servirá la app en el servidor.
-# Esto lo ejecutarás desde la terminal, no dentro del código:
-# uvicorn main:app --reload
+# Ruta de login
+@app.post("/login")
+def login(user: User):
+    # Verificar si el usuario existe y la contraseña es correcta
+    stored_user = fake_users_db.get(user.username)
+    if stored_user is None or stored_user["password"] != user.password:
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+    return {"message": "Login exitoso!"}
